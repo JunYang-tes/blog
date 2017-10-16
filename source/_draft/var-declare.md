@@ -345,3 +345,130 @@ kitty.name = "Cat";
 kitty.numLives--;
 ```
 除非你采取了特殊措施，`const`变量的内部状态（注：对像的属性，数组的元素等）是可变的（注：const 变量指的是引用不变）。所幸，TypeScript可指定属性为`readonly`来避免属性被修改。[接口]()章会详述这个问题。
+
+
+# `let` vs. `const`
+
+设计两种具有相似作用域语义的变量声明方式，这使我们自然会问“使用哪个?”。答案和很多问题一样：看情况。
+
+根据[最少特权原则](https://en.wikipedia.org/wiki/Principle_of_least_privilege),所有无计划修改的变量应声明成`const`。原因是，如果一个变量不需要被修改，那么其头代码也不应有能修改这些变量的能力，也需要思考它们是否真得需要重赋值这些变量。使用`const`也使的在推算数据流的时候（注：即在脑中执行代码）代码的行为更可被预测。
+
+另一方面，`let` 不是用来替代var的（let和const一起才是），有的人
+？？？
+
+# 解构
+
+
+TypeScript拥有的es2015的另一个特性是`解构`。[这里]是关于解构的完整说明，本节将大略的描述解构。
+
+
+## 数组解构
+
+最简单的数组解构是数组的解构赋值。
+```typescript
+let input = [1, 2];
+let [first, second] = input;
+console.log(first); // outputs 1
+console.log(second); // outputs 2
+```
+这里创建了两个变量，first和second，和使用索引的方式效果一个，但是更加方便。
+```typescript
+first = input[0];
+second = input[1];
+```
+
+解构赋值也可使用在已经声明的变量上，
+```typescript
+// swap variables
+[first, second] = [second, first];
+```
+
+以及用在函数的参数中：
+```typescript
+function f([first, second]: [number, number]) {
+    console.log(first);
+    console.log(second);
+}
+f([1, 2]);
+```
+
+你可以使用...语法来创建一个list变量来保存剩余元素：
+
+```typescript
+let [first, ...rest] = [1, 2, 3, 4];
+console.log(first); // outputs 1
+console.log(rest); // outputs [ 2, 3, 4 ]
+```
+
+当然，你也可以忽略你不关心的尾部的元素。
+```typescript
+let [first] = [1, 2, 3, 4];
+console.log(first); // outputs 1
+```
+当然，其它元素也是可忽略的：
+```typescript
+let [, second, , fourth] = [1, 2, 3, 4];
+```
+
+## 对象解构
+
+你也可以解构对象：
+```typescript
+let o = {
+    a: "foo",
+    b: 12,
+    c: "bar"
+};
+let { a, b } = o;
+```
+
+这里从a对象创建了a、b变量，其值分别是`o.a`,`o.b`并忽略了`a.c`。
+
+和数组解构一样你也可以不要声明而赋值：
+```typescript
+({ a, b } = { a: "baz", b: 101 });
+```
+注意，我们必须用园括号把代码包起来，js会把{作为块来解析
+你也可以使用`...`语法来创建一个包含其它未被解构属性的变量
+
+```typescript
+let { a, ...passthrough } = o;
+let total = passthrough.b + passthrough.c.length;
+```
+
+### 属性重命名
+
+
+你也可以给属性一个不同的名字
+```typescript
+let { a: newName1, b: newName2 } = o;
+```
+这种语法开始让人有点迷糊，你可以把`a:newName1`解释为`newName1是a`,这和下面的代码是等价的：
+
+```typescript
+let newName1 = o.a;
+let newName2 = o.b;
+```
+这里的`：`不是表示类型，如果你想指定变量的类型，那么需要在整个解构后。
+### 默认值
+
+默认值可以在某个属性是undefined的时候指定一个默认的值。
+```typescript
+function keepWholeObject(wholeObject: { a: string, b?: number }) {
+    let { a, b = 1001 } = wholeObject;
+}
+```
+这里,在函数`keepWholeObject`中有变量:`a`,`b`,以及`wholeObject`。
+
+### 函数声明
+解构也可用在函数的声明中，如下例：
+```typescript
+type C = { a: string, b?: number }
+function f({ a, b }: C): void {
+    // ...
+}
+```
+[placeholder]
+
+## 延展Spread
+spread运算和解构运算作用是相对的，它可以把一个数组中的元素放到其他数组中。或者把一个对象的属性放到其它对象中。
