@@ -79,4 +79,4 @@ theme: next
 deploy:
   type: git
   repository: git@github.com:OuyangQianba/OuyangQianba.github.io.git
-  branch: master
+  branch: blog 
