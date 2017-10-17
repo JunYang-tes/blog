@@ -1,7 +1,11 @@
 ---
-title: 变量声明
+title: 2.变量声明
 date: 2017-10-13 22:30:02
-tags:
+tags: typescript, ts
+categories:
+- 翻译
+- 编程语言
+- TypeScript
 ---
 
 # 变量声明
@@ -353,8 +357,7 @@ kitty.numLives--;
 
 根据[最少特权原则](https://en.wikipedia.org/wiki/Principle_of_least_privilege),所有无计划修改的变量应声明成`const`。原因是，如果一个变量不需要被修改，那么其头代码也不应有能修改这些变量的能力，也需要思考它们是否真得需要重赋值这些变量。使用`const`也使的在推算数据流的时候（注：即在脑中执行代码）代码的行为更可被预测。
 
-另一方面，`let` 不是用来替代var的（let和const一起才是），有的人
-？？？
+[placeholder]
 
 # 解构
 
@@ -470,5 +473,41 @@ function f({ a, b }: C): void {
 ```
 [placeholder]
 
-## 延展Spread
+## 延展
+
+>不知道spread对应的术语，乱译为`延展`
+
 spread运算和解构运算作用是相对的，它可以把一个数组中的元素放到其他数组中。或者把一个对象的属性放到其它对象中。
+比如：
+```typescript
+let first = [1, 2];
+let second = [3, 4];
+let bothPlus = [0, ...first, ...second, 5];
+```
+`bothPlus`数组为[0,1,2,3,4,5],`Spread`创建了`first`和`second`的**浅拷贝**
+你也可以`spread`一个对象
+```typescript
+let defaults = { food: "spicy", price: "$$", ambiance: "noisy" };
+let search = { ...defaults, food: "rich" };
+```
+`search`为`{ food: "rich", price: "$$", ambiance: "noisy" }`,对象的延展比数组的延展要复杂一些。和数组延展一样，处理的过程是“从左到右的”,只是处理的结果仍然是一个数组而矣。这意味着，后出现的属性将覆盖先出现的属性。所以，如果我们修改上面的例子：
+```typescript
+let defaults = { food: "spicy", price: "$$", ambiance: "noisy" };
+let search = { food: "rich", ...defaults };
+```
+那么得到的search的food属性的值将会是`spicy`。
+
+对象延展还有一些限制，结果只会包含对象[自身的、可枚举的属性](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Enumerability_and_ownership_of_properties)(注：自身的表示非原型链上的属性)
+所以，当你延展一个对象时，将丢失其上的方法。
+```typescript
+class C {
+  p = 12;
+  m() {
+  }
+}
+let c = new C();
+let clone = { ...c };
+clone.p; // ok
+clone.m(); // error!
+```
+此外，Typescript编译器不允许泛型函数的类型参数。这一特型在将来的版本中可能会受支持。
