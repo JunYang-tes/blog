@@ -1,5 +1,15 @@
+---
+title: 3.接口
+date: 2017-10-26 22:30:02
+tags: typescript, ts
+categories:
+- 翻译
+- 编程语言
+- TypeScript
+---
+
 # Introduction
-TypeScript的核心概念之一就是类型检查，Typescript的类型检查是基于值的“形状”而言的，这种类型被称为“鸭类型”或“结构化类型”（注：如果一种生物走起路来像鸭子，叫起来像鸭子，就人为它是鸭子）。在TypeScript中，是给类型“命名”的一种角色，也是种约束你的代码的有效方式。
+TypeScript的核心概念之一就是类型检查，Typescript的类型检查是基于值的“形状”而言的，这种类型被称为“鸭类型”或“结构化类型”（注：如果一种生物走起路来像鸭子，叫起来像鸭子，就认为它是鸭子）。在TypeScript中，是给类型“命名”的一种角色，也是种约束你的代码的有效方式。
 
 # 第一个接口
 
@@ -13,10 +23,30 @@ let myObj = {size: 10, label: "Size 10 Object"};
 printLabel(myObj);
 
 ```
-类型检查器检查对`printLabel`的调用，该函数需要一个参数，这个参数是一个有串类型的`label`属性的对象。调用时传递给该函数的参数实际上除了`label`属性，还有些其它属性。编译器只会确保有必要的
+类型检查器检查对`printLabel`的调用，该函数需要一个参数，这个参数是一个有串类型的`label`属性的对象。调用时传递给该函数的参数实际上除了`label`属性，还有些其它属性。编译器只会确保有有相匹配的那些属性，但也有一些情况不是这样简单的处理。
+我们可以改写这个例子，这次我们使用一个接口来描述`printLabel`的参数。
+
+```typescript
+interface LabelledValue {
+    label: string;
+}
+
+function printLabel(labelledObj: LabelledValue) {
+    console.log(labelledObj.label);
+}
+
+let myObj = {size: 10, label: "Size 10 Object"};
+printLabel(myObj);
+```
+
+现在我们可用`LabelledValue`这个接口来描述`printLabel`的参数。我们并没有明确的让传递给`printLabel`的参数要实现`LabelledValue`这个接口，在其它语言中可能需要这样做。这里只在乎的是“形状”。如果我们传递过去的东西和`LabelledValue`是兼容的就可以的。
+
+值得说明的是，类型检察器不在意属性出现的顺序，只在有意识必要的那些属性以及这些属性的类型是正确的。
+
+
 
 #  可选属性
-接口中并不是每个属性都是必须的，有的属性在某些情况下才会出现，甚至不会出现。在使用。。。
+接口中并不是每个属性都是必须的，有的属性在某些情况下才会出现，甚至不会出现。在使用所谓的“option bags”（注:即把所有的选项放在一个对象里面）的模式的时候可选属性是很常用的。        
 ```typescript
 interface SquareConfig {
     color?: string;
@@ -37,6 +67,7 @@ function createSquare(config: SquareConfig): {color: string; area: number} {
 let mySquare = createSquare({color: "black"});
 ```
 有可选属性的接口的语法和普通接口是类似的，只是每个可选属性的名字后面用一个`?`标记出来。
+
 可选属性的优势是你可以描述那些可能出现的属性而且避免那些没有在接口中声明的属性(注:可防止拼写错误)。比如，我们把`color`错写成了`clor`，TypeScript将给出一个错误消息。
 ```typescript
 interface SquareConfig {
@@ -87,7 +118,10 @@ a=ro as number[]
 ```
 **readonly** vs **const**
 区别使用`readonly`还是`const`的最简单的方式是看是在属性上还是在变量上。前者使用`readonly`后者使用`const`
-# Excess Property Checks
+
+
+# 多余属性检查
+
 在我们的第一个例子中，我们把`{ size: number; label: string; }`传递给接受`{ label: string; }`的函数。我们也了解了可选属性，以及其在"option bags"时候的用处。
 然而，这两者简单的合起来用却会遇到和JavaScript中一样的麻烦。例如:
 ```typescript
@@ -259,7 +293,65 @@ class Clock implements ClockInterface {
 
 >This prohibits you from using them to check that a class also has particular types for the private side of the class instance.(每个单词都认识，就是不知道它在说什么)
 
-## Difference between the static and instance sides of classes
+## 静态侧类型和实例侧类型的不同之处
+
+<!--
+When working with classes and interfaces, it helps to keep in mind that a class has two types: the type of the static side and the type of the instance side. You may notice that if you create an interface with a construct signature and try to create a class that implements this interface you get an error:
+-->
+当使用接口和类的时候，需注意的是一个类有两个类型：静态侧类型(type of static side)和实例侧类型（type of instance side）。如果你创建了一个拥有构造函数的签名的接口，并试图用一个类来实现这个接口，那你会得到一个错误：
+
+```typescript
+interface ClockConstructor {
+    new (hour: number, minute: number);
+}
+
+class Clock implements ClockConstructor {
+    currentTime: Date;
+    constructor(h: number, m: number) { }
+}
+```
+
+<!--
+This is because when a class implements an interface, only the instance side of the class is checked. Since the constructor sits in the static side, it is not included in this check.
+
+
+Instead, you would need to work with the static side of the class directly. In this example, we define two interfaces, ClockConstructor for the constructor and ClockInterface for the instance methods. Then for convenience we define a constructor function createClock that creates instances of the type that is passed to it.
+-->
+
+这是因为当一个类实现一个接口的时候，只有类的实例侧会被检察。而构造函数属于静态侧，而不会被检察。
+相反，你应该直接使用静态侧类型。在下面这个例子中我们定义了两个接口，用于构造函数的`ClockConstructor`和用于实例的`ClockInterface`.然后我们创建了`createClock`来创建传递给它的的类型的实例。
+
+```typescript
+interface ClockConstructor {
+    new (hour: number, minute: number): ClockInterface;
+}
+interface ClockInterface {
+    tick();
+}
+
+function createClock(ctor: ClockConstructor, hour: number, minute: number): ClockInterface {
+    return new ctor(hour, minute);
+}
+
+class DigitalClock implements ClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("beep beep");
+    }
+}
+class AnalogClock implements ClockInterface {
+    constructor(h: number, m: number) { }
+    tick() {
+        console.log("tick tock");
+    }
+}
+
+let digital = createClock(DigitalClock, 12, 17);
+let analog = createClock(AnalogClock, 7, 32);
+```
+因为`createClock`的第一个参数是`ClockConstructor`类型，而`AnalogClock`的构造函数的类型和这个接口是兼容的，所以`createClock(AnalogClock,7,32)`是可以的。
+
+
 
 ## 扩展接口
 和类一样，接口也可以扩展其它的接口。这可以让你把一个接口的属性复制到另外一个接口中。这样就可以把接口拆分成可复用的组件。
@@ -322,6 +414,40 @@ c.interval = 5.0;
 当你使用第三方JavaScript库的时候，你也许需要这一特性来完全描述对象的类型。
 
 # 接口扩展类
-当一个接口扩展只一个类，那么它继承了类的所有成员，但不包含这些成员的实现。表现的就像接口声明了这所有的接口，没有实现它们。接口甚至可以继承一到类的私有的或受保护的成员。这表明当你创建了一个继承了私有或受保护的成员，这个接口就只能
+当一个接口扩展只一个类，那么它继承了类的所有成员，但不包含这些成员的实现。表现的就像接口声明了这所有的接口，没有实现它们。接口甚至可以继承一到类的私有的或受保护的成员。这表明当你创建了一个继承了私有或受保护的成员，这个接口就只能被该类的子类实现。(注:原文说的是该接口只能被该类或其子类实现)
+```typescript
+class Control {
+    private state: any;
+}
+
+interface SelectableControl extends Control {
+    select(): void;
+}
+
+class Button extends Control implements SelectableControl {
+    select() { }
+}
+
+class TextBox extends Control {
+
+}
+
+// Error: Property 'state' is missing in type 'Image'.
+class Image implements SelectableControl {
+    select() { }
+}
+
+class Location {
+
+}
+```
+<!--
+In the above example, SelectableControl contains all of the members of Control, including the private state property. Since state is a private member it is only possible for descendants of Control to implement SelectableControl. This is because only descendants of Control will have a state private member that originates in the same declaration, which is a requirement for private members to be compatible.
+
+Within the Control class it is possible to access the state private member through an instance of SelectableControl. Effectively, a SelectableControl acts like a Control that is known to have a select method. The Button and TextBox classes are subtypes of SelectableControl (because they both inherit from Control and have a select method), but the Image and Location classes are not.
+-->
+在上面的例子中，`SelectableControl`包含了`Control`的所有成员，包私有的`state`成员。`state`是私有变量，只能在`Control`的子类中实现`SelectableControl`，这是因为`Control`的子类才有这些同处声明的私有成员，这是私有成员类型兼容的必要条件。
+
+
 
 
