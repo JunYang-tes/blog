@@ -152,4 +152,47 @@ fetch('flowers.jpg').then(function(response) {
 }).catch(function(error) {
   console.log('There has been a problem with your fetch operation: ' + error.message);
 });
+```
+<!--
+Supplying your own request object
+-->
+<!--
+Instead of passing a path to the resource you want to request into the fetch() call, you can create a request object using the Request() constructor, and pass that in as a fetch() method argument:
+
+-->
+除了传一个路径给fetch方法，你也可以直接传一个request给它，你可以使用`Request`构造函数来创建request对象。
+```javascript
+var myHeaders = new Headers();
+
+var myInit = { method: 'GET',
+               headers: myHeaders,
+               mode: 'cors',
+               cache: 'default' };
+
+var myRequest = new Request('flowers.jpg', myInit);
+
+fetch(myRequest).then(function(response) {
+  return response.blob();
+}).then(function(myBlob) {
+  var objectURL = URL.createObjectURL(myBlob);
+  myImage.src = objectURL;
+});
+```
+<!--
+Request() accepts exactly the same parameters as the fetch() method. You can even pass in an existing request object to create a copy of it:
+-->
+`Request`和`fetch`拥有同样的参数，你甚至可以传递一个Request对象到Request构造函数中去创建一另一个Request对象。
+```javascript
+var anotherRequest = new Request(myRequest, myInit);
+```
+<!--
+This is pretty useful, as request and response bodies are one use only. Making a copy like this allows you to make use of the request/response again, while varying the init options if desired.  The copy must be made before the body is read, and reading the body in the copy will also mark it as read in the original request.
+-->
+
+这是很有用的，因为request和response body都是一次性的。创建一个副本让你可以重用这个request。必须在读body之前创建这个副本，而且在副本中读body也会导致原请求的body被标记为已读。
+
+<!--
+There is also a clone() method that creates a copy. Both methods of creating a copy will fail if the body of the original request or response has already been read, but reading the body of a cloned response or request will not cause it to be marked as read in the original.
+-->
+>注：还有一个clone方法用来创建request的副本。这两种方式在原request或reponse body已读的情况下都会创建失败。但是以读clone 方式创建的副本的body不会导致原request和response被标记为已读。
 
