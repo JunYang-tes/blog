@@ -196,3 +196,107 @@ There is also a clone() method that creates a copy. Both methods of creating a c
 -->
 >注：还有一个clone方法用来创建request的副本。这两种方式在原request或reponse body已读的情况下都会创建失败。但是以读clone 方式创建的副本的body不会导致原request和response被标记为已读。
 
+<!--
+Headers
+
+The Headers interface allows you to create your own headers object via the Headers() constructor. A headers object is a simple multi-map of names to values:
+-->
+
+# Header
+可以通过`Header`构造函数来创建一个Header对象，从而设置Header。一个Header对象包含了一些`名-值`对：
+
+
+```javascript
+var content = "Hello World";
+var myHeaders = new Headers();
+myHeaders.append("Content-Type", "text/plain");
+myHeaders.append("Content-Length", content.length.toString());
+myHeaders.append("X-Custom-Header", "ProcessThisImmediately");
+```
+<!--
+The same can be achieved by passing an array of arrays or an object literal to the constructor:
+-->
+还可以通过传递一个字面量对象数组给`Header`构造函数来构造一个`Header`
+```javascript
+myHeaders = new Headers({
+  "Content-Type": "text/plain",
+  "Content-Length": content.length.toString(),
+  "X-Custom-Header": "ProcessThisImmediately",
+});
+```
+<!--
+The contents can be queried and retrieved:
+-->
+Header中的内容可以被访问：
+
+```javascript
+console.log(myHeaders.has("Content-Type")); // true
+console.log(myHeaders.has("Set-Cookie")); // false
+myHeaders.set("Content-Type", "text/html");
+myHeaders.append("X-Custom-Header", "AnotherValue");
+ 
+console.log(myHeaders.get("Content-Length")); // 11
+console.log(myHeaders.get("X-Custom-Header")); // ["ProcessThisImmediately", "AnotherValue"]
+ 
+myHeaders.delete("X-Custom-Header");
+console.log(myHeaders.get("X-Custom-Header")); // [ ]
+```
+<!--
+Some of these operations are only useful in ServiceWorkers, but they provide a much nicer API for manipulating headers.
+
+
+-->
+
+这些操作有的只在[Service Worker](https://developer.mozilla.org/en-US/docs/Web/API/ServiceWorker_API)中很有用，但他们提供了一个很好的操作header的方式。
+
+<!--
+All of the Headers methods throw a TypeError if a header name is used that is not a valid HTTP Header name. The mutation operations will throw a TypeError if there is an immutable guard (see below). Otherwise they fail silently. For example:
+-->
+如果在这些方法中使用的header不是一个有效的HTTP header，或在Header是只读的情况下操作Header，会导致TypeError类型的错误。（前者什么意思？在Chrome console中实验只发现在参数个数不对时导致了TypeError）其它情况的失败调用不会导致TypeError错误。
+
+```javascript
+var myResponse = Response.error();
+try {
+  myResponse.headers.set("Origin", "http://mybank.com");
+} catch(e) {
+  console.log("Cannot pretend to be a bank!");
+}
+```
+
+<!--
+A good use case for headers is checking whether the content type is correct before you process it further. For example:
+-->
+
+一个使用Header的好例子是在进一步解析Response之前检察一下Content-Type：
+
+```javascript
+fetch(myRequest).then(function(response) {
+    var contentType = response.headers.get("content-type");
+    if(contentType && contentType.includes("application/json")) {
+      return response.json();
+    }
+    throw new TypeError("Oops, we haven't got JSON!");
+  })
+  .then(function(json) { /* process your JSON further */ })
+  .catch(function(error) { console.log(error); });
+```
+<!--
+Guard
+
+Since headers can be sent in requests and received in responses, and have various limitations about what information can and should be mutable, headers objects have a guard property. This is not exposed to the Web, but it affects which mutation operations are allowed on the headers object.
+
+-->
+
+# Guard
+由于Header可以随Request发送，也可从Response中读取，并且对于那些数据是可变的有许多限制，所以Header对象有一些隐藏属性（guard property)。这些属性不会暴露给Web，但它们会影响那些对操作是被允许的。
+
+<!--
+Possible guard values are:
+
+none: default.
+request: guard for a headers object obtained from a request (Request.headers).
+request-no-cors: guard for a headers object obtained from a request created with Request.mode no-cors.
+response: guard for a Headers obtained from a response (Response.headers).
+immutable: Mostly used for ServiceWorkers; renders a headers object read-only.
+Note: You may not append or set a request guarded Headers’ Content-Length header. Similarly, inserting Set-Cookie into a response header is not allowed: ServiceWorkers are not allowed to set cookies via synthesized responses.
+-->
