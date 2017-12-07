@@ -300,3 +300,23 @@ response: guard for a Headers obtained from a response (Response.headers).
 immutable: Mostly used for ServiceWorkers; renders a headers object read-only.
 Note: You may not append or set a request guarded Headers’ Content-Length header. Similarly, inserting Set-Cookie into a response header is not allowed: ServiceWorkers are not allowed to set cookies via synthesized responses.
 -->
+
+<!--
+Response objects
+
+As you have seen above, Response instances are returned when fetch() promises are resolved.
+
+The most common response properties you'll use are:
+
+Response.status — An integer (default value 200) containing the response status code.
+Response.statusText — A string (default value "OK"),which corresponds to the HTTP status code message.
+Response.ok — seen in use above, this is a shorthand for checking that status is in the range 200-299 inclusive. This returns a Boolean.
+They can also be created programmatically via JavaScript, but this is only really useful in ServiceWorkers, when you are providing a custom response to a received request using a respondWith() method:
+-->
+
+# Response
+在fetch返回的Promise resolved 之后会得到一个Response的实例。
+最常用的Response对象的属性有：
+`Response.status` - 一个整数 （默认值是200） 包含Response的状态码。
+`Response.statusText` - 一个串 （默认值是OK），包含HTTP状态消息。
+`Response.ok` - 如果状态码在200~299这间，该值为true。
