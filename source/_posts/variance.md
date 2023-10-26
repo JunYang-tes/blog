@@ -7,6 +7,7 @@ categories:
 - TypeScript
 ---
 
+
 # typescript 4.7 显式Variance注解
 
 **什么是Variance**
@@ -24,13 +25,15 @@ interface Dog extends Animal {
 type A<T> = ...
 ```
 
-Dog 是Aniaml的子类型，在需要Animal的地方，可以使用Dog。
+什么是子类型？同常我们讲一个类型是另一个类型的子类型。我们将的是可赋值性。既需要父类型的地方可以安全的使用子类型代替。比如这里，Dog 是Aniaml的子类型，在需要Animal的地方，可以使用Dog。从集合的角度来看，子类型是父类型的子集。
 
-若A<Dog> 也 是 A<Animal> 的子类型，这叫协变**covariant**。
+对于泛型类型来说，一个类型是不是另一个类型的子类型，可能就不能简单的是或者否来回答。分以下三种情况，每种情况有一个术语来称呼：
 
-若A<Animal> 是A<Dog> 的子类型，这叫**逆变contravariant**
+若A<Dog> 也 是 A<Animal> 的子类型，这叫**协变covariant，**Dog ⊆ Animal, A<Dog> ⊆ A<Animal>。
 
-若A<Animal> 不是A<Dog> 的子类型，A<Dog> 也不是A<Animal>的子类型，这就叫**不变invariant**
+若A<Animal> 是A<Dog> 的子类型，这叫**逆变contravariant，**Dog ⊆ Animal, A<Dog> ⊇ A<Animal>。
+
+若A<Animal> 不是A<Dog> 的子类型，A<Dog> 也不是A<Animal>的子类型，这就叫**不变invariant，**
 
 **协变**
 
@@ -44,20 +47,30 @@ interface Dog extends Animal {
 type A<T> = {
 	value: T
 }
+type B<T> = ()=>T
 
 declare let a:A<Animal>
 declare let b:A<Dog>
+
+```
+
+A<T>是协变的。因为A<Dog> 可以赋值给A<Animal>
+
+```tsx
 /*
 b 可以赋值个 a, 因为 b 为 { value: Dog } a 为 { value: Animal },
 我们可以把Dog 当做Animal 使用，A是协变的。
 */
-a=b;
+a=b
 /*
 反过来不行，因为不能把Aniaml 当做 Dog来使用。
 */
 b=a;// type error
+```
 
-type B<T> = () => T
+同样B<T>也是协变的：
+
+```tsx
 declare let c: B<Animal>
 declare let d: B<Dog>
 /*
@@ -95,22 +108,32 @@ interface Animal {
 	animalStuff: any
 }
 interface Dog extends Animal {
-	dogStuff:any
+	dogStuff:string
+}
+interface Cat extends Animal {
+    catStuff:unknown
 }
 
 type A<T> = (v:T) =>void
-declare let a: A<Animal>
-declare let b: A<Dog>
-/*
-a 是 (v:Animal) => void ，在使用a 时候，它希望我们传给他一个animal 或animal的子类型
-b 是 (v:Dog) => void, 如果能将b赋值给a，那么在使用a时就不能传animal的子类型给a了，
-a(dog) // OK
-a=b; // 假设OK
-a(dog) // 类型OK，但实际不安全。
-因此不能让b可以赋值给a。A是逆变的。
-*/
-a = b;// error
-b = a; // OK
+declare let wantAnimal: A<Animal>
+declare let wantDog: A<Dog>
+declare let aCat:Cat
+```
+
+现在的A<T>的变性是协变、逆变还是不变呢？A<T>是逆变的，因为A<Dog> 不是A<Aniaml>的子类型。那么为什么A<Dog> 不是A<Animal>的子类型呢？下列赋值是不全的：
+
+```tsx
+wantAnimal = wantDog
+```
+
+因为wantDog 接受一个更小范围的值，而wantAnimal接受一个更大范围的值。例如wantAniml(aCat)是可以的，因为Cat 是Animal的子类型。而wantDog(cat)是不行的，因为Cat 是Cat ，Dog 是Dog,它们都是派生自Animal的。假如wantDog可以赋值给wantAnimal，那么wantAnimal(aCat)再运行时就可能出错（如果wantDog访问了dog独有的属性）。
+
+```tsx
+function dog(d:Dog) {
+	console.log(d.dogStuff.toUpperCase());
+}
+wantAnimal = dog as any;
+wantAnimal(aCat) // Oops,call toUpperCase on undefined
 ```
 
 逆变用`in` 关键字来描述。
@@ -127,6 +150,8 @@ type A<in T> = (v:T) =>void
 ```
 
 **不变**
+
+不变就是把前面两种情况组合起来
 
 ```tsx
 interface Animal {
