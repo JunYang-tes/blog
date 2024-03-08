@@ -3,6 +3,8 @@ layout: post
 title: 低成本DIY一把小红点机械键盘
 date: 2023-11-22 14:41:49
 tags:
+categories:
+  - 其它
 ---
 
 # 低成本DIY一把小红点机械键盘

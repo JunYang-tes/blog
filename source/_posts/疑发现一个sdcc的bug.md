@@ -3,6 +3,10 @@ layout: post
 title: 疑发现一个sdcc的bug
 date: 2023-08-27
 tags:
+  - 单片机
+  - sdcc
+categories:
+  - 其它
 ---
 
 sdcc 在编译下面代码时候报警告：

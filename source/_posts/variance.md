@@ -5,6 +5,7 @@ tags:
   - typescript
   - ts
 categories:
+- 翻译
 - 编程语言
 - TypeScript
 ---
