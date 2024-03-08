@@ -1,7 +1,9 @@
 ---
 title: 4.类
 date: 2017-10-27 
-tags: typescript, ts
+tags: 
+  - typescript
+  - ts
 categories:
 - 翻译
 - 编程语言

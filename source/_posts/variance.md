@@ -1,7 +1,9 @@
 ---
 title: typescript 4.7 显式Variance注解
 date: 2022-4
-tags: typescript, ts
+tags: 
+  - typescript
+  - ts
 categories:
 - 编程语言
 - TypeScript

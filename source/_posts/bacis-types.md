@@ -1,7 +1,9 @@
 ---
 title: 1.基本类型
 date: 2017-10-10 17:32:03
-tags: typescript, ts
+tags: 
+  - typescript
+  - ts
 categories:
 - 翻译
 - 编程语言

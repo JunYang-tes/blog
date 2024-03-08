@@ -1,7 +1,9 @@
 ---
 title: 2.变量声明
 date: 2017-10-13 22:30:02
-tags: typescript, ts
+tags: 
+  - typescript
+  - ts
 categories:
 - 翻译
 - 编程语言

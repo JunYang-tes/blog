@@ -1,7 +1,9 @@
 ---
 title: 3.接口
 date: 2017-10-26 22:30:02
-tags: typescript, ts
+tags: 
+  - typescript
+  - ts
 categories:
 - 翻译
 - 编程语言
